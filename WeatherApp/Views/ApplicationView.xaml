@@ -6,8 +6,9 @@
         xmlns:local="clr-namespace:WeatherApp"
         xmlns:views="clr-namespace:WeatherApp.Views"
         xmlns:models="clr-namespace:WeatherApp.ViewModels"
+        xmlns:p="clr-namespace:WeatherApp.Properties" 
         mc:Ignorable="d"
-        Title="My Weather Station" Height="450" Width="400">
+        Title="{x:Static p:Resources.Title}" Height="450" Width="400">
     <Window.Resources>
         <DataTemplate DataType="{x:Type models:TemperatureViewModel}">
             <views:TemperatureView/>
@@ -24,10 +25,17 @@
     </Window.Resources>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
-            <MenuItem Header="File">
-                <MenuItem Header="Weather Station" Command="{Binding ChangePageCommand}" CommandParameter="TemperatureViewModel"/>
-                <MenuItem Header="Preferences..." Command="{Binding ChangePageCommand}" CommandParameter="ConfigurationViewModel"/>
+            <MenuItem Header="{x:Static p:Resources.Menu_File}">
+                <MenuItem Header="{x:Static p:Resources.Menu_WeatherStation}" Command="{Binding ChangePageCommand}" CommandParameter="TemperatureViewModel"/>
+                <MenuItem Header="{x:Static p:Resources.Menu_Preferences}" Command="{Binding ChangePageCommand}" CommandParameter="ConfigurationViewModel"/>
                 <Separator />
+                <MenuItem Header="{x:Static p:Resources.Menu_Load}" Command="{Binding LoadDataCommand}" />
+                <MenuItem Header="{x:Static p:Resources.Menu_Save}" Command="{Binding SaveDataCommand}" />
+                <Separator />
+                <MenuItem Header="{x:Static p:Resources.Menu_Lang}">
+                    <MenuItem Header="{x:Static p:Resources.Menu_Lang_FR}" Command="{Binding ChangeLanguageCommand}" CommandParameter="fr-CA"/>
+                    <MenuItem Header="{x:Static p:Resources.Menu_Lang_EN}" Command="{Binding ChangeLanguageCommand}" CommandParameter="en-CA"/> 
+                </MenuItem>
             </MenuItem>
         </Menu>
         <ContentControl Content="{Binding CurrentViewModel}"/>

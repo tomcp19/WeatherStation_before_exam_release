@@ -5,16 +5,44 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:WeatherApp.Views"
              xmlns:models="clr-namespace:WeatherApp.Models"
+             xmlns:p="clr-namespace:WeatherApp.Properties" 
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="400">
     <DockPanel>
         <ToolBar DockPanel.Dock="Top">
-            <TextBlock Text="City : "/>
+            <TextBlock Text="{x:Static p:Resources.TVM_City}"/>
             <TextBox Text="{Binding City, UpdateSourceTrigger=PropertyChanged}" Width="250"/>
         </ToolBar>
-        <Button DockPanel.Dock="Top" Content="Get Data" Command="{Binding GetTempCommand}"/>
+        <Button DockPanel.Dock="Top" Content="{x:Static p:Resources.TVM_GetData_btn}" Command="{Binding GetTempCommand}"/>
 
-        <TextBlock Text="{Binding RawText}"/>
+        <!--<TextBlock Text="{Binding RawText}"/>-->
+
+        <ListView ItemsSource="{Binding Temperatures}"  MaxHeight="300">
+            <ListView.ItemTemplate>
+                <DataTemplate DataType="{x:Type models:TemperatureModel}">
+                    <Border BorderThickness="1" BorderBrush="Black">
+                        <Grid Width="250">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static p:Resources.TVM_ItemCity}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static p:Resources.TVM_ItemCurrentTemp}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static p:Resources.TVM_ItemDateTime}" Panel.ZIndex="7"/>
+
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding City,UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Temperature,UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding DateTime,UpdateSourceTrigger=PropertyChanged}"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
 
     </DockPanel>
 </UserControl>

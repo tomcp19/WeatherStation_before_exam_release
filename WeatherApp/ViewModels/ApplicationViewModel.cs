@@ -1,9 +1,15 @@
-﻿using Ookii.Dialogs.Wpf;
+﻿using Newtonsoft.Json;
+using Ookii.Dialogs.Wpf;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using WeatherApp.Commands;
 using WeatherApp.Services;
+using WeatherApp.Models;
+using System.Windows;
+using System.Diagnostics;
 
 namespace WeatherApp.ViewModels
 {
@@ -16,6 +22,7 @@ namespace WeatherApp.ViewModels
         private TemperatureViewModel tvm;
         private OpenWeatherService ows;
         private string filename;
+        private string fileContent;
 
         private VistaSaveFileDialog saveFileDialog;
         private VistaOpenFileDialog openFileDialog;
@@ -50,10 +57,23 @@ namespace WeatherApp.ViewModels
             }
         }
 
+        public string FileContent
+        {
+            get { return fileContent; }
+            set
+            {
+                fileContent = value;
+                OnPropertyChanged();
+            }
+        }
+
         /// <summary>
         /// Commande pour changer la page à afficher
         /// </summary>
         public DelegateCommand<string> ChangePageCommand { get; set; }
+        public DelegateCommand<string> SaveDataCommand { get; set; }
+        public DelegateCommand<string> LoadDataCommand { get; set; }
+        public DelegateCommand<string> ChangeLanguageCommand { get; set; }
 
 
         public List<BaseViewModel> ViewModels
@@ -69,6 +89,9 @@ namespace WeatherApp.ViewModels
         public ApplicationViewModel()
         {
             ChangePageCommand = new DelegateCommand<string>(ChangePage);
+            SaveDataCommand = new DelegateCommand<string>(Export, CanExport);
+            LoadDataCommand = new DelegateCommand<string>(Import);
+            ChangeLanguageCommand = new DelegateCommand<string>(ChangeLanguage);
 
             initViewModels();
 
@@ -81,8 +104,12 @@ namespace WeatherApp.ViewModels
         {
             /// TemperatureViewModel setup
             tvm = new TemperatureViewModel();
-
             string apiKey = "";
+            
+            /*if (!string.IsNullOrEmpty(Properties.Settings.Default.apiKey))
+                { 
+                    apiKey = Properties.Settings.Default.apiKey;
+                }*/
 
             if (Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "DEVELOPMENT")
             {
@@ -91,8 +118,11 @@ namespace WeatherApp.ViewModels
 
             if (string.IsNullOrEmpty(Properties.Settings.Default.apiKey) && apiKey == "")
             {
-                tvm.RawText = "Aucune clé API, veuillez la configurer";
-            } else
+                //tvm.RawText = "Aucune clé API, veuillez la configurer";
+                tvm.City = "Aucune clé API, veuillez la configurer";
+
+            }
+            else
             {
                 if (apiKey == "")
                     apiKey = Properties.Settings.Default.apiKey;
@@ -125,7 +155,10 @@ namespace WeatherApp.ViewModels
 
         private bool CanExport(string obj)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+
+            if (tvm.Temperatures != null) return true;
+            else return false;
         }
 
         /// <summary>
@@ -142,17 +175,42 @@ namespace WeatherApp.ViewModels
                 saveFileDialog.DefaultExt = "json";
             }
 
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                filename = saveFileDialog.FileName;
+                saveToFile();
+            }
+
         }
 
         private void saveToFile()
         {
+            var resultat = JsonConvert.SerializeObject(tvm.Temperatures, Formatting.Indented);
 
+            using (var tw = new StreamWriter(filename, false))
+            {
+                tw.WriteLine(resultat);
+                tw.Close();
+            }
 
         }
 
         private void openFromFile()
         {
+            using (var sr = new StreamReader(Filename))
+            {
+                //FileContent = "-- FileContent --" + Environment.NewLine;
+                FileContent += sr.ReadToEnd();
 
+                if (FileContent != "")
+                {
+
+                    tvm.Temperatures = JsonConvert.DeserializeObject<ObservableCollection<TemperatureModel>>(FileContent);
+                    //tvm.RawText = string.Join(Environment.NewLine, tvm.Temperatures);
+                    FileContent = "";
+                }
+
+            }
         }
 
         private void Import(string obj)
@@ -162,17 +220,48 @@ namespace WeatherApp.ViewModels
                 openFileDialog = new VistaOpenFileDialog();
                 openFileDialog.Filter = "Json file|*.json|All files|*.*";
                 openFileDialog.DefaultExt = "json";
+            }
 
-
+            if (openFileDialog.ShowDialog() == true)
+            {
+                Filename = openFileDialog.FileName;
+                openFromFile();
             }
         }
 
         private void ChangeLanguage(string language)
         {
+            
+            if(language != Properties.Settings.Default.Language)
+            {
+                MessageBoxResult result = MessageBox.Show($"{ Properties.Resources.TxtMsgBog_Lang}", Properties.Resources.TxtBoxMsg_Title, MessageBoxButton.YesNo);
+                switch (result)
+                {//Properties.Resources.TxtMsgBog_Lang
+                    case MessageBoxResult.Yes:
+                        Properties.Settings.Default.Language = language;
+                        Properties.Settings.Default.Save();
+                        restart();
+                        break;
 
+                    case MessageBoxResult.No:
+                        break;
+                }
+            }
+            else
+            {
+                MessageBox.Show($"{ Properties.Resources.TxtMsgBog_Already}", Properties.Resources.TxtBoxMsg_Title, MessageBoxButton.OK);
+            }
+        }
+
+        void restart()
+        {
+            var filename = Application.ResourceAssembly.Location;
+            var newFile = Path.ChangeExtension(filename, ".exe");
+            Process.Start(newFile);
+            Application.Current.Shutdown();
         }
 
         #endregion
-        
+
     }
 }

@@ -1,4 +1,6 @@
 ﻿using OpenWeatherAPI;
+using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using WeatherApp.Services;
 using WeatherApp.ViewModels;
@@ -22,5 +24,7 @@ namespace WeatherApp
 
             DataContext = vm;            
         }
+
+      
     }
 }

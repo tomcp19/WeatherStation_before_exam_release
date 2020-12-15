@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using WeatherApp.Commands;
@@ -11,13 +13,13 @@ namespace WeatherApp.ViewModels
     public class TemperatureViewModel : BaseViewModel
     {
         private TemperatureModel currentTemp;
-        private string city;
+        private string city;  //ok
 
-        public ITemperatureService TemperatureService { get; private set; }
+        public ITemperatureService TemperatureService { get; private set; }  //ok
 
-        public DelegateCommand<string> GetTempCommand { get; set; }
+        public DelegateCommand<string> GetTempCommand { get; set; }  //ok
 
-        public TemperatureModel CurrentTemp 
+        public TemperatureModel CurrentTemp   //ok
         { 
             get => currentTemp;
             set
@@ -39,7 +41,7 @@ namespace WeatherApp.ViewModels
             }
         }
 
-        public string City
+        public string City  //ok
         {
             get { return city; }
             set
@@ -55,9 +57,9 @@ namespace WeatherApp.ViewModels
             }
         }
 
-        private string _rawText;
+        private string _rawText; //ok
 
-        public string RawText {
+        public string RawText { //ok
             get {
                 return _rawText;
             }
@@ -75,45 +77,61 @@ namespace WeatherApp.ViewModels
             Temperatures = new ObservableCollection<TemperatureModel>();
 
             GetTempCommand = new DelegateCommand<string>(GetTemp, CanGetTemp);
+
         }
 
 
-        public bool CanGetTemp(string obj)
+        public bool CanGetTemp(string obj) //ok
         {
-            return TemperatureService != null;
+            //return TemperatureService != null;
+
+            if (Properties.Settings.Default.apiKey == "" || TemperatureService == null)
+                return false;
+            else
+                return true;
         }
 
-        public void GetTemp(string obj)
+        public void GetTemp(string obj) //ok
         {
             if (TemperatureService == null) throw new NullReferenceException();
 
             _ = GetTempAsync();
         }
 
-        private async Task GetTempAsync()
+        private async Task GetTempAsync() //ok
         {
-            CurrentTemp = await TemperatureService.GetTempAsync();
-
-            if (CurrentTemp != null)
+            try
             {
-                RawText = CurrentTemp.ToString() + Environment.NewLine + RawText;
-                Debug.WriteLine(CurrentTemp);
+                CurrentTemp = await TemperatureService.GetTempAsync();
+                //RawText = $"Time : {CurrentTemp.DateTime.ToLocalTime()} {Environment.NewLine}Temperature : {CurrentTemp.Temperature}";
+                if (CurrentTemp != null)
+                {
+                    temperatures.Add(CurrentTemp);
+                    //Save();
+                    RawText = CurrentTemp.ToString() + Environment.NewLine + RawText;
+                    Debug.WriteLine(CurrentTemp);
+                }
+            }
+            catch (Exception e)
+            {
+                City = e.Message;
             }
         }
 
-        public double CelsiusInFahrenheit(double c)
+        public double CelsiusInFahrenheit(double c) //ok
         {
             return c * 9.0 / 5.0 + 32;
         }
 
-        public double FahrenheitInCelsius(double f)
+        public double FahrenheitInCelsius(double f) //ok
         {
             return (f - 32) * 5.0 / 9.0;
         }
 
-        public void SetTemperatureService(ITemperatureService srv)
+        public void SetTemperatureService(ITemperatureService srv) //ok
         {
             TemperatureService = srv;
         }
+
     }
 }

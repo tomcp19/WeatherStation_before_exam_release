@@ -110,7 +110,18 @@ namespace OpenWeatherAPI
                     OWCurrentWeaterModel result = await response.Content.ReadAsAsync<OWCurrentWeaterModel>();
                     return result;
                 }
-
+                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    throw new Exception("invalid API key");
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    throw new Exception("City not found");
+                }
+                else if (String.IsNullOrEmpty(City))
+                {
+                    throw new Exception("Location/City is empty, please enter a City name");
+                }
                 return null;
 
             }
